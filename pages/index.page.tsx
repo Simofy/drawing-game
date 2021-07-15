@@ -18,6 +18,8 @@ enum MouseState {
   Up = 'mouseup',
   Leave = 'mouseleave',
   Enter = 'mouseenter',
+  touchStart = 'touchstart',
+  touchEnd = 'touchend',
   Default = 'default'
 }
 
@@ -126,34 +128,38 @@ function HandleGameComponent({
       currentDrawing.id = id
     }
   }, [])
+  const down = () => {
+    canvasContext.strokeStyle = config.color
+    canvasContext.lineWidth = config.stroke
+    canvasContext.lineCap = 'round'
+    canvasContext.lineJoin = 'round'
+
+    canvasContext.beginPath()
+    canvasContext.moveTo(mouseState.x, mouseState.y)
+
+    currentDrawing.data.push({
+      color: config.color,
+      path: `M${Math.floor(mouseState.x)} ${mouseState.y}`,
+      stroke: config.stroke
+    })
+    currentDrawing.lastIndex = currentDrawing.data.length - 1
+  }
+  const up = () => {
+    canvasContext.lineTo(mouseState.x, mouseState.y)
+    canvasContext.strokeStyle = config.color
+    canvasContext.lineWidth = config.stroke
+    canvasContext.stroke()
+    currentDrawing.data[currentDrawing.lastIndex].path += ` L${Math.floor(
+      mouseState.x
+    )} ${mouseState.y}`
+    updateDrawing()
+  }
   const mouseCallbacks = useMemo<{ [key in MouseState]?: () => void }>(
     () => ({
-      [MouseState.Down]: () => {
-        canvasContext.strokeStyle = config.color
-        canvasContext.lineWidth = config.stroke
-        canvasContext.lineCap = 'round'
-        canvasContext.lineJoin = 'round'
-
-        canvasContext.beginPath()
-        canvasContext.moveTo(mouseState.x, mouseState.y)
-
-        currentDrawing.data.push({
-          color: config.color,
-          path: `M${Math.floor(mouseState.x)} ${mouseState.y}`,
-          stroke: config.stroke
-        })
-        currentDrawing.lastIndex = currentDrawing.data.length - 1
-      },
-      [MouseState.Up]: () => {
-        canvasContext.lineTo(mouseState.x, mouseState.y)
-        canvasContext.strokeStyle = config.color
-        canvasContext.lineWidth = config.stroke
-        canvasContext.stroke()
-        currentDrawing.data[currentDrawing.lastIndex].path += ` L${Math.floor(
-          mouseState.x
-        )} ${mouseState.y}`
-        updateDrawing()
-      }
+      [MouseState.Down]: down,
+      [MouseState.Up]: up,
+      [MouseState.touchStart]: down,
+      [MouseState.touchEnd]: up
     }),
     []
   )
@@ -181,15 +187,45 @@ function HandleGameComponent({
     }
   }, [])
 
+  const demoDrawMobile = useCallback((e: TouchEvent) => {
+    if (mouseState.state === MouseState.touchStart) {
+      const { touches } = e
+      if (touches.length) {
+        mouseState.x = touches[0].clientX
+        mouseState.y = touches[0].clientY
+        if (
+          !rangeCondition(touches[0].clientX, mouseState.prevX, 10) ||
+          !rangeCondition(touches[0].clientY, mouseState.prevY, 10)
+        ) {
+          mouseState.prevX = mouseState.x
+          mouseState.prevY = mouseState.y
+          canvasContext.strokeStyle = config.color
+          canvasContext.lineWidth = config.stroke
+          canvasContext.lineTo(touches[0].clientX, touches[0].clientY)
+          canvasContext.stroke()
+
+          currentDrawing.data[currentDrawing.lastIndex].path += ` L${Math.floor(
+            mouseState.x
+          )} ${mouseState.y}`
+        }
+      }
+    }
+  }, [])
+
   const handleMouseState = useCallback(
-    (state: MouseState, ...rest: [(() => void) | null, MouseEvent]) => {
+    (state: MouseState, ...rest: [(() => void) | null, MouseEvent | TouchEvent]) => {
       const [callback, event] = rest
       const { x, y } = mouseState
       mouseState.prevX = x
       mouseState.prevY = y
-      const { clientX, clientY } = event
-      mouseState.x = clientX
-      mouseState.y = clientY
+      const { clientX, clientY, touches } = event
+      if (touches && touches.length) {
+        mouseState.x = touches[0].clientX
+        mouseState.y = touches[0].clientY
+      } else {
+        mouseState.x = clientX
+        mouseState.y = clientY
+      }
       mouseState.state = state
       callback && callback()
     },
@@ -208,11 +244,13 @@ function HandleGameComponent({
       }
     })
     document.addEventListener('mousemove', demoDraw)
+    document.addEventListener('touchmove', demoDrawMobile)
     return () => {
       callbackRef.forEach(({ listener, callback }) => {
         document.removeEventListener(listener, callback)
       })
       document.removeEventListener('mousemove', demoDraw)
+      document.removeEventListener('touchmove', demoDrawMobile)
     }
   }, [])
   return null
