@@ -1,17 +1,22 @@
-import ReactDOM from "react-dom";
-import React from "react";
-import { getPage } from "vite-plugin-ssr/client";
-import { PageLayout } from "./PageLayout";
+import React from 'react'
+import ReactDOM from 'react-dom'
+//@ts-ignore
+import { getPage } from 'vite-plugin-ssr/client'
 
-hydrate();
+import { GameWrapper } from './GameWrapper'
 
 async function hydrate() {
-  const pageContext = await getPage();
-  const { Page, pageProps } = pageContext;
+  const pageContext = await getPage()
+  const {
+    Page,
+    pageProps: { data, pageProps }
+  } = pageContext
   ReactDOM.hydrate(
-    <PageLayout>
+    <GameWrapper data={data}>
       <Page {...pageProps} />
-    </PageLayout>,
-    document.getElementById("page-view")
-  );
+    </GameWrapper>,
+    document.getElementById('app')
+  )
 }
+
+hydrate()

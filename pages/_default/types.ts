@@ -1,10 +1,12 @@
-import type { PageContextBuiltIn } from "vite-plugin-ssr/types";
-export type PageProps = {};
-export type PageContext = PageContextBuiltIn & {
-  Page: (pageProps: PageProps) => JSX.Element;
-  pageProps: PageProps;
-  documentProps?: {
-    title?: string;
-    description?: string;
-  };
-};
+export type DrawingType = {
+  color: string
+  path: string
+  stroke: number
+}
+export interface IGameContext {
+  data: {
+    user: string
+    _id: string
+    paths: DrawingType[]
+  }[]
+}
