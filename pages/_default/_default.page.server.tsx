@@ -35,7 +35,7 @@ function render(pageContext: any) {
         <meta name="author" content="Julius Simas Simutis" />
         <meta
           name="description"
-          content="Demo drawing game using Vite/SSR/mongoDB/websocket. You can find this repo in: "
+          content="Demo drawing game using Vite/SSR/mongoDB/websocket. You can find this repo in: https://github.com/Simofy/drawing-game"
         />
         <title>Drawing game</title>
         ${html.dangerouslySkipEscape(renderCSS())}
