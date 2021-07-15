@@ -218,6 +218,7 @@ function HandleGameComponent({
       const { x, y } = mouseState
       mouseState.prevX = x
       mouseState.prevY = y
+      //@ts-ignore
       const { clientX, clientY, touches } = event
       if (touches && touches.length) {
         mouseState.x = touches[0].clientX
