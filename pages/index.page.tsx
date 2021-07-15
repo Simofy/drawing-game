@@ -146,6 +146,8 @@ function HandleGameComponent({
       },
       [MouseState.Up]: () => {
         canvasContext.lineTo(mouseState.x, mouseState.y)
+        canvasContext.strokeStyle = config.color
+        canvasContext.lineWidth = config.stroke
         canvasContext.stroke()
         currentDrawing.data[currentDrawing.lastIndex].path += ` L${Math.floor(
           mouseState.x
@@ -167,6 +169,8 @@ function HandleGameComponent({
       ) {
         mouseState.prevX = mouseState.x
         mouseState.prevY = mouseState.y
+        canvasContext.strokeStyle = config.color
+        canvasContext.lineWidth = config.stroke
         canvasContext.lineTo(clientX, clientY)
         canvasContext.stroke()
 
